@@ -173,11 +173,10 @@ if __name__ == '__main__':
         lidar = d['lidar']
         labels = d['labels']
         
-        print(len(lidar), len(labels))
+        # print(len(lidar), len(labels))
         print(lidar[0].shape, labels[0].shape)
-        break
         
-#         i += 1
-#         if i == 10:
-#             break
+        i += 1
+        if i == 10:
+            break
         

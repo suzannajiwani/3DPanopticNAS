@@ -52,6 +52,7 @@ _C.DATASET.VERSION = 'trainval'
 _C.DATASET.NAME = 'nuscenes'
 _C.DATASET.IGNORE_INDEX = 255  # Ignore index when creating flow/offset labels
 _C.DATASET.FILTER_INVISIBLE_VEHICLES = True
+_C.DATASET.MAX_LIDAR_POINTS = 34720
 
 _C.MODEL = CN()
 
@@ -67,7 +68,6 @@ _C.MODEL.BN_MOMENTUM = 0.1
 _C.MODEL.SUBSAMPLE = False  # Subsample frames for Lyft
 
 _C.SEMANTIC_SEG = CN()
-_C.SEMANTIC_SEG.WEIGHTS = [1.0, 2.0]  # per class cross entropy weights (bg, dynamic, drivable, lane)
 _C.SEMANTIC_SEG.USE_TOP_K = True  # backprop only top-k hardest pixels
 _C.SEMANTIC_SEG.TOP_K_RATIO = 0.25
 
