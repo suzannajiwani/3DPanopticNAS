@@ -52,7 +52,7 @@ _C.DATASET.VERSION = 'trainval'
 _C.DATASET.NAME = 'nuscenes'
 _C.DATASET.IGNORE_INDEX = 255  # Ignore index when creating flow/offset labels
 _C.DATASET.FILTER_INVISIBLE_VEHICLES = True
-_C.DATASET.MAX_LIDAR_POINTS = 34720
+_C.DATASET.MAX_LIDAR_POINTS = 34752
 
 _C.MODEL = CN()
 

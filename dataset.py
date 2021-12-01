@@ -19,6 +19,28 @@ from nuscenes.utils.splits import create_splits_scenes
 from pyquaternion import Quaternion
 from trainer import TrainingModule
 
+def prepare_dataloaders(cfg):
+    version = cfg.DATASET.VERSION
+
+#     dataroot = os.path.join(cfg.DATASET.DATAROOT, version)
+    nusc = NuScenes(version='v1.0-{}'.format(cfg.DATASET.VERSION), dataroot=cfg.DATASET.DATAROOT, verbose=False)
+
+    traindata = PanopDataset(nusc, True, cfg)
+    valdata = PanopDataset(nusc, False, cfg)
+
+    if cfg.DATASET.VERSION == 'mini':
+        traindata.indices = traindata.indices[:10]
+        valdata.indices = valdata.indices[:10]
+
+    nworkers = cfg.N_WORKERS
+    trainloader = torch.utils.data.DataLoader(
+        traindata, batch_size=cfg.BATCHSIZE, shuffle=True, num_workers=nworkers, pin_memory=True, drop_last=True
+    )
+    valloader = torch.utils.data.DataLoader(
+        valdata, batch_size=cfg.BATCHSIZE, shuffle=False, num_workers=nworkers, pin_memory=True, drop_last=False)
+
+    return trainloader, valloader
+
 class PanopDataset(Dataset):
     def __init__(self, nusc, is_train, cfg):
         self.nusc = nusc
@@ -77,6 +99,14 @@ class PanopDataset(Dataset):
                 indices.append(current_indices)
 
         return np.asarray(indices)
+    
+    def pad_to_max_len(self, lidar):
+        max_len = self.cfg.DATASET.MAX_LIDAR_POINTS
+        cur_len = lidar.shape[0]
+        if max_len > cur_len:
+            return np.pad(lidar, ((0,max_len-cur_len), (0,0)), 'constant', constant_values=(0,0))
+        else:
+            return lidar
 
     def _get_top_lidar_pose(self, rec):
         egopose = self.nusc.get('ego_pose', self.nusc.get('sample_data', rec['data']['LIDAR_TOP'])['ego_pose_token'])
@@ -131,7 +161,7 @@ class PanopDataset(Dataset):
                 points = LidarPointCloud.from_file(lidar_filename).points.T
             
 
-            data['lidar'].append(points)
+            data['lidar'].append(self.pad_to_max_len(points))
 
         return data
 
