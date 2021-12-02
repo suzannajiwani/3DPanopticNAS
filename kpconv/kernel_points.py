@@ -30,8 +30,8 @@ from matplotlib import cm
 from os import makedirs
 from os.path import join, exists
 
-from utils.ply import read_ply, write_ply
-from utils.config import bcolors
+from kpconv.ply import read_ply, write_ply
+from kpconv.config import bcolors
 
 
 # ------------------------------------------------------------------------------------------

@@ -14,7 +14,7 @@
 #      Hugues THOMAS - 06/03/2020
 #
 
-from blocks import *
+from kpconv.blocks import *
 import numpy as np
 
 

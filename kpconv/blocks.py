@@ -21,9 +21,9 @@ import torch
 import torch.nn as nn
 from torch.nn.parameter import Parameter
 from torch.nn.init import kaiming_uniform_
-from kernel_points import load_kernels
+from kpconv.kernel_points import load_kernels
 
-from ply import write_ply
+from kpconv.ply import write_ply
 
 # ----------------------------------------------------------------------------------------------------------------------
 #
