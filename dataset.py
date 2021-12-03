@@ -3,7 +3,7 @@ import os
 import ipdb
 import pandas as pd
 import matplotlib.pyplot as plt
-from torch.utils.data import Dataset
+#from torch.utils.data import Dataset
 import numpy as np
 import torch
 import cloudpickle
@@ -18,6 +18,8 @@ from nuscenes.utils.data_io import load_bin_file
 from nuscenes.utils.splits import create_splits_scenes
 from pyquaternion import Quaternion
 from trainer import TrainingModule
+from torch_geometric.data import Data, Dataset
+
 
 def prepare_dataloaders(cfg):
     version = cfg.DATASET.VERSION
@@ -42,10 +44,14 @@ def prepare_dataloaders(cfg):
     return trainloader, valloader
 
 class PanopDataset(Dataset):
-    def __init__(self, nusc, is_train, cfg):
-        self.nusc = nusc
+    def __init__(self, dataroot, is_train):
+        self.dataroot = dataroot
         self.is_train = is_train
-        self.cfg = cfg
+        
+        self.MAX_LIDAR_POINTS = 69
+        self.DATAROOT = dataroot #'/nobackup/users/sjiwani/nuscenes-dataset'
+        self.VERSION = 'trainval'
+        self.nusc = NuScenes(version=f'v1.0-{version}', dataroot=dataroot, verbose=True)
 
         self.mode = 'train' if self.is_train else 'val'
         self.sequence_length = 1
@@ -101,7 +107,7 @@ class PanopDataset(Dataset):
         return np.asarray(indices)
     
     def pad_to_max_len(self, lidar):
-        max_len = self.cfg.DATASET.MAX_LIDAR_POINTS
+        max_len = self.MAX_LIDAR_POINTS
         cur_len = lidar.shape[0]
         if max_len > cur_len:
             return np.pad(lidar, ((0,max_len-cur_len), (0,0)), 'constant', constant_values=(0,0))
@@ -115,10 +121,10 @@ class PanopDataset(Dataset):
         rot = Quaternion(scalar=np.cos(yaw / 2), vector=[0, 0, np.sin(yaw / 2)]).inverse
         return trans, rot
 
-    def __len__(self):
+    def len(self):
         return len(self.indices)
     
-    def __getitem__(self, index):
+    def get(self, index):
         """
         Returns
         -------
@@ -133,6 +139,7 @@ class PanopDataset(Dataset):
             data[key] = []
 
         # Loop over all the frames in the sequence.
+        print(self.indices[index])
         for index_t in self.indices[index]:
             rec = self.ixes[index_t]
 
@@ -145,12 +152,12 @@ class PanopDataset(Dataset):
 #                 np.hstack((lidar_rotation.rotation_matrix, lidar_translation)),
 #                 np.array([0, 0, 0, 1])
 #             ])
-            lidar_filename = f'{self.cfg.DATASET.DATAROOT}/{lidar_sample["filename"]}'
+            lidar_filename = f'{self.DATAROOT}/{lidar_sample["filename"]}'
     
             if self.is_train:
                 # this means that labels exist
                 lidar_token = rec['data']['LIDAR_TOP']
-                label_filename = f'{self.cfg.DATASET.DATAROOT}/panoptic/v1.0-{self.cfg.DATASET.VERSION}/{lidar_token}_panoptic.npz'
+                label_filename = f'{self.DATAROOT}/panoptic/v1.0-{self.VERSION}/{lidar_token}_panoptic.npz'
                 panoptic_label_arr = load_bin_file(label_filename, 'panoptic')
                 data["labels"].append(panoptic_label_arr)
                 points = LidarPointCloud.from_file(lidar_filename).points.T
@@ -163,7 +170,10 @@ class PanopDataset(Dataset):
 
             data['lidar'].append(self.pad_to_max_len(points))
 
-        return data
+        # return data
+        lidar = np.asarray(data["lidar"][0])
+        labels = np.asarray(data["labels"][0])
+        return Data(points=lidar[:, :3], x=lidar[:,3], y=labels)
 
 
 if __name__ == '__main__':
@@ -195,8 +205,8 @@ if __name__ == '__main__':
     cfg.DATASET.VERSION = version
     
     # test
-    nusc = NuScenes(version='v1.0-trainval', dataroot=dataroot, verbose=True)
-    dataset = PanopDataset(nusc, True, cfg)
+    #nusc = NuScenes(version='v1.0-trainval', dataroot=dataroot, verbose=True)
+    dataset = PanopDataset(dataroot, True)
     i = 0
     for d in dataset:
         # print(d)
