@@ -1,3 +1,8 @@
 __pycache__/
 kpconv/__pycache__/
 */__pycache__/
+torch_points_kernels/*
+torch_points_kernels/
+torch_points3d/*
+torch_points3d/
+.ipynb_checkpoints/

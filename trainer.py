@@ -2,22 +2,23 @@ import torch
 import torch.nn as nn
 import pytorch_lightning as pl
 
+
+
 from config import get_cfg
-from model import Panoster
+from torch_points3d1.models.panopticseg.model import get_model
 
 class TrainingModule(pl.LightningModule):
     def __init__(self, hparams={}):
         super().__init__()
-        
+        hparams["conv_type"] = "SPARSE"
         # see config.py for details
-        self.hparams = hparams
+        self.hparams.update(hparams)
         # pytorch lightning does not support saving YACS CfgNone
         cfg = get_cfg(cfg_dict=self.hparams)
         self.cfg = cfg
 
         # Model
-        self.model = Panoster(cfg)
-
+        self.model = get_model(cfg, 0)
         # Losses
         self.losses_fn = nn.ModuleDict()
         self.losses_fn['semantic'] = torch.nn.CrossEntropyLoss()
