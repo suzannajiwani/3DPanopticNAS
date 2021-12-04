@@ -1,6 +1,6 @@
-from torch_points3d.models.panoptic import PointGroup
+from torch_points3d.models.panoptic.pointgroup import PointGroup
 
 
 def get_model(option, dataset):
-    return PointGroup({}, 0, dataset, 0)
+    return PointGroup(option, 0, dataset, 0)
     
