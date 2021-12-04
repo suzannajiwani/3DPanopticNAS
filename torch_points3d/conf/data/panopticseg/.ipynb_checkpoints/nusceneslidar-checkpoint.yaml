@@ -1,0 +1,6 @@
+# @package data
+task: panopticseg
+class: nusceneslidar.NusceneslidarDataset
+dataroot: '/nobackup/users/sjiwani/nuscenes-dataset'
+first_subsampling: 0.04
+use_category: False
